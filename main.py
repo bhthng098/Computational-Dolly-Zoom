@@ -33,17 +33,12 @@ K = np.array([[f, 0, u_0], [0, f, v_0], [0, 0, 1]])
 
 # equation 4
 def applyDigitalZoom(input, f, f_desired):
-    # I = cv2.cvtColor(input, cv2.COLOR_RGB2GRAY)
     I = input[:,:,1]
-    # out_im = I
     out_im = np.zeros(I.shape)
-    # out_im.fill(255)
-    # print(input.shape)
     im_width, im_height = I.shape
 
     k = f_desired / f
     u0 = np.array([im_width // 2, im_height // 2])
-    # print(u0, k)
     center_offset = (1 - k) * u0
 
     for i_x in range (im_width):
@@ -81,24 +76,63 @@ def applyDigitalZoomReverse(input, f, f_desired):
     # print(np.where(out_im == 0)[3])
     return out_im
 
+def d_z_synthesis(d, i_a, d_a, t):
+    """
+    all image inputs should have the same shape
+    d is original depth map
+    i_a is digital zoomed image
+    d_a is digital zoomed depth map
+    t is a desired distance between depth maps
+
+    return:
+    some output synthesized image
+    """
+    I_a = img_as_float32(i_a[:,:,:])
+    D = img_as_float32(d[:,:,0])
+    D_a = img_as_float32(d_a[:,:,0])
+
+    out_im = np.zeros(i_a.shape)
+    im_width = i_a.shape[0]
+    im_height = i_a.shape[1]
+
+    u0 = np.array([im_width // 2, im_height // 2])
+    
+    D_center = D[im_width // 2, im_height // 2]
+
+    for i_x in range(im_width):
+        for i_y in range(im_height):
+            d_at_x_y = D_a[i_x, i_y]
+            [out_x, out_y] =  d_at_x_y * (D_center - t) / (D_center * (d_at_x_y - t)) * np.array([i_x, i_y]) + (t * (d_at_x_y - D_center) / (D_center * (d_at_x_y - t))) * u0
+            out_x = int(out_x)
+            out_y = int(out_y)
+            # print(out_x, out_y)
+            if out_x  in range(im_width) and out_y in range(im_height):  
+              out_im[out_x, out_y] = I_a[i_x, i_y]
+    return out_im
+
 
 output_I = applyDigitalZoomReverse(I, f, 40)
+print("output I found")
 output_D = applyDigitalZoomReverse(D, f, 40)
+print("output D found")
 
-f, axarr = plt.subplots(1,2)
-axarr[0].imshow(I)
-axarr[1].imshow(output_I)
+# f, axarr = plt.subplots(1,2)
+# axarr[0].imshow(I)
+# axarr[1].imshow(output_I)
+# plt.show()
+
+# plt.imshow(output_D)
+# plt.show()
+
+# f2, axarr2 = plt.subplots(1,2)
+# axarr2[0].imshow(D)
+# axarr2[1].imshow(output_D)
+# plt.show()
+
+# cv2.imwrite(f'results/beatrice_full_35_to_40.png', output_I)
+# cv2.imwrite(f'results/beatrice_full_depth_35_to_40.png', output_D)
+
+i_1_dz = d_z_synthesis(D, output_I, output_D, .1)
+plt.imshow(i_1_dz)
 plt.show()
-
-plt.imshow(output_D)
-plt.show()
-
-f2, axarr2 = plt.subplots(1,2)
-axarr2[0].imshow(D)
-axarr2[1].imshow(output_D)
-plt.show()
-
-cv2.imwrite(f'results/beatrice_full_35_to_40.png', output_I)
-cv2.imwrite(f'results/beatrice_full_depth_35_to_40.png', output_D)
-
-
+cv2.imwrite(f'results/beatrice_dz_35_to_40.png', cv2.cvtColor(img_as_ubyte(i_1_dz), cv2.COLOR_RGB2BGR))
