@@ -31,11 +31,34 @@ plt.show()
 # plt.show()
 
 # equation 4
-def applyDigitalZoom(input, f, f_desired, u_0, v_0):
-    k = f/f_desired
-    output = k*input + (1-k)*(u_0, v_0)
-    return output
+def applyDigitalZoom(input, f, f_desired):
+    # I = cv2.cvtColor(input, cv2.COLOR_RGB2GRAY)
+    I = input[:,:,1]
+    # out_im = I
+    out_im = np.zeros(I.shape)
+    # out_im.fill(255)
+    # print(input.shape)
+    im_width, im_height = I.shape
 
-output = applyDigitalZoom(I, f, 40, u_0, v_0)
-plt.imshow(output)
+    k = f_desired / f
+    u0 = np.array([im_width // 2, im_height // 2])
+    # print(u0, k)
+    center_offset = (1 - k) * u0
+
+    for i_x in range (im_width):
+        for i_y in range(im_height):
+            [out_x, out_y] = k * np.array([i_x, i_y]) + center_offset
+            # out_x = int(np.clip(out_x, 0, im_width - 1))
+            # out_y = int(np.clip(out_y, 0, im_height - 1))
+            out_x = int(out_x)
+            out_y = int(out_y)
+            # print(out_x, out_y)
+            if out_x  in range(im_width) and out_y in range(im_height):  
+              out_im[out_x, out_y] = I[i_x, i_y]
+    # print(np.where(out_im == 0)[3])
+    return out_im
+
+
+output = applyDigitalZoom(I, f, 40)
+plt.imshow(output, cmap="gray")
 plt.show()
