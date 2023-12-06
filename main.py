@@ -142,33 +142,35 @@ def show_2_images_side_by_side(im1, im2):
 source_file = "data/beatrice_full.jpg"
 depth_file = "data/beatrice_full_depth.jpg"
 
-I = cv2.imread(source_file)
-I = cv2.cvtColor(I, cv2.COLOR_BGR2RGB)
-D = cv2.imread(depth_file)
-D = cv2.cvtColor(D, cv2.COLOR_BGR2RGB)
-
-# u_0 = I.shape[0]/2
-# v_0 = I.shape[1]/2
-f = 35
-# K = np.array([[f, 0, u_0], [0, f, v_0], [0, 0, 1]])
-
-output_I = applyDigitalZoomReverse(I, f, 40)
-print("output I found")
-output_D = applyDigitalZoomReverse(D, f, 40)
-print("output D found")
-
-cv2.imwrite(f'results/beatrice_full_35_to_40.png', cv2.cvtColor(img_as_ubyte(output_I), cv2.COLOR_RGB2BGR))
-cv2.imwrite(f'results/beatrice_full_depth_35_to_40.png', cv2.cvtColor(img_as_ubyte(output_D), cv2.COLOR_RGB2BGR))
-
-# i_digital_zoom = "results/beatrice_full.jpg"
-# depth_digital_zoom = "data/beatrice_full_depth.jpg"
-
 # I = cv2.imread(source_file)
 # I = cv2.cvtColor(I, cv2.COLOR_BGR2RGB)
 # D = cv2.imread(depth_file)
 # D = cv2.cvtColor(D, cv2.COLOR_BGR2RGB)
 
-# i_1_dz = DZSynthesis(D, output_I, output_D, .1)
-# plt.imshow(i_1_dz)
-# plt.show()
-# cv2.imwrite(f'results/beatrice_dz_35_to_40.png', cv2.cvtColor(img_as_ubyte(i_1_dz), cv2.COLOR_RGB2BGR))
+# u_0 = I.shape[0]/2
+# v_0 = I.shape[1]/2
+# f = 35
+# K = np.array([[f, 0, u_0], [0, f, v_0], [0, 0, 1]])
+
+# output_I = applyDigitalZoomReverse(I, f, 40)
+# print("output I found")
+# output_D = applyDigitalZoomReverse(D, f, 40)
+# print("output D found")
+
+# cv2.imwrite(f'results/beatrice_full_35_to_40.png', cv2.cvtColor(img_as_ubyte(output_I), cv2.COLOR_RGB2BGR))
+# cv2.imwrite(f'results/beatrice_full_depth_35_to_40.png', cv2.cvtColor(img_as_ubyte(output_D), cv2.COLOR_RGB2BGR))
+
+i_digital_zoom = "results/beatrice_full_35_to_40.png"
+depth_digital_zoom = "results/beatrice_full_depth_35_to_40.png"
+
+i_a = cv2.imread(i_digital_zoom)
+i_a = cv2.cvtColor(i_a, cv2.COLOR_BGR2RGB)
+D = cv2.imread(depth_file)
+D = cv2.cvtColor(D, cv2.COLOR_BGR2RGB)
+d_a = cv2.imread(depth_digital_zoom)
+d_a = cv2.cvtColor(d_a, cv2.COLOR_BGR2RGB)
+
+i_1_dz = DZSynthesis(D, i_a, d_a, .1)
+plt.imshow(i_1_dz)
+plt.show()
+cv2.imwrite(f'results/beatrice_dz_35_to_40_t1e-1.png', cv2.cvtColor(img_as_ubyte(i_1_dz), cv2.COLOR_RGB2BGR))
