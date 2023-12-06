@@ -42,10 +42,6 @@ def applyDigitalZoom(input, f, f_desired):
               out_im[out_x, out_y] = I[i_x, i_y]
     return out_im
 
-def isPositionValid(position, width, height):
-    x, y = position
-    return x in range(width) and y in range(height)
-
 def applyDigitalZoomReverse(input, f, f_desired):
     """
     applies a digital zoom to an input image, given the image's
@@ -69,23 +65,30 @@ def applyDigitalZoomReverse(input, f, f_desired):
     k = f_desired / f
     u0 = np.array([im_width // 2, im_height // 2])
     center_offset = (1 - k) * u0
-    print(center_offset)
 
-    # # for each pixel in the out image
-    # for o_x in range (im_width):
-    #     for o_y in range(im_height):
-    #         # find the corresponding input image location
-    #         [in_x, in_y] = (np.array([o_x, o_y]) - center_offset) / k
+    # for each pixel in the out image
+    for o_x in range (im_width):
+        for o_y in range(im_height):
+            # find the corresponding input image location
+            [in_x, in_y] = (np.array([o_x, o_y]) - center_offset) / k
     
-    #         in_x = int(in_x)
-    #         in_y = int(in_y)
+            in_x = int(in_x)
+            in_y = int(in_y)
 
-    #         if in_x  in range(im_width) and in_y in range(im_height):
-    #           # if it is in range, set the out image pixel to the input image pixel value
-    #           out_im[o_x, o_y, :] = I[in_x, in_y, :]
-    indices_of_out = np.indices((im_width, im_height))
+            if in_x  in range(im_width) and in_y in range(im_height):
+              # if it is in range, set the out image pixel to the input image pixel value
+              out_im[o_x, o_y, :] = I[in_x, in_y, :]
+
+    # AN ATTEMPT TO DO WITHOUT FOR LOOPS. FAILED. DO NOT RUN, WILL TAKE FOREVER
+    # indices_of_out = np.where(out_im[:,:,0] == out_im[:,:,0])
+    # positions_of_out = np.dstack(indices_of_out)[0]
     
-    out_im = I[(indices_of_out - center_offset) / k] if isPositionValid((indices_of_out - center_offset) / k, im_width, im_height) else 0
+    # all_possible_positions = (positions_of_out - center_offset) / k
+    # all_possible_positions = all_possible_positions.astype(int)
+    # valid_positions = all_possible_positions[ (0<=all_possible_positions[:,1]) & (all_possible_positions[:,1]<im_height) ]
+    # valid_positions = valid_positions[ (0<=valid_positions[:,0]) & (valid_positions[:,0]<im_width) ]
+
+    # out_im[valid_positions, :] = I[valid_positions, :]
 
     return out_im
 
