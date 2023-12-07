@@ -129,7 +129,7 @@ def DZSynthesis(d, i_a, d_a, t):
             out_x = int(out_x)
             out_y = int(out_y)
             # print(out_x, out_y)
-            if out_x  in range(im_width) and out_y in range(im_height):  
+            if out_x in range(im_width) and out_y in range(im_height):  
               out_im[out_x, out_y] = I_a[i_x, i_y]
     return out_im
 
@@ -180,7 +180,7 @@ def DZSynthesis_SecondForm(d, i, t, f_original, f_desired):
             d_at_x_y = D[o_x, o_y]
 
             # find the corresponding input image location
-            [in_x, in_y] =  (( ((d_at_x_y - t) * k_) / d_at_x_y * k)*(np.array([o_x, o_y]) - u0)) + u0
+            [in_x, in_y] =  (( ((d_at_x_y - t) * k_) / (d_at_x_y * k))*(np.array([o_x, o_y]) - u0)) + u0
     
             in_x = int(in_x)
             in_y = int(in_y)
@@ -193,84 +193,114 @@ def DZSynthesis_SecondForm(d, i, t, f_original, f_desired):
 
 
 
-def show_2_images_side_by_side(im1, im2):
+def show_2_images_side_by_side(im1, im2, title):
     f, axarr = plt.subplots(1,2)
     axarr[0].imshow(im1)
     axarr[1].imshow(im2)
+    plt.title(title)
     plt.show()
 
 def image_fusion(I1, I2):
-    B = I
+    B = I1
     B = np.where(B == 0, 1, 0)
 
-    plt.imshow(B)
-    plt.show()  
+    # plt.imshow(B)
+    # plt.show()  
 
     output = B*I2 + (1-B)*I1
+    print("Images fused")
     return output
 
+def generateDigitallyZoomedImageAndDepth(orig_image, depth_map, f_original, f_desired):
+  u_0 = orig_image.shape[0]/2
+  v_0 = orig_image.shape[1]/2
+  K = np.array([[f_original, 0, u_0], [0, f_original, v_0], [0, 0, 1]])
 
-source_file = "data/beatrice_full.jpg"
-depth_file = "data/beatrice_full_depth.jpg"
+  output_I = applyDigitalZoomReverse(orig_image, f_original, f_desired)
+  print("digital zoom I generated")
 
-# I = cv2.imread(source_file)
-# I = cv2.cvtColor(I, cv2.COLOR_BGR2RGB)
-# D = cv2.imread(depth_file)
-# D = cv2.cvtColor(D, cv2.COLOR_BGR2RGB)
+  output_D = applyDigitalZoomReverse(depth_map, f_original, f_desired)
+  print("digital zoom D generated")
+  # cv2.imwrite(f'results/digzoom'+source_file_path[5:]+'.png', cv2.cvtColor(img_as_ubyte(output_I), cv2.COLOR_RGB2BGR))
+  # cv2.imwrite(f'results/digzoom'+depth_file_path[5:]+'.png', cv2.cvtColor(img_as_ubyte(output_D), cv2.COLOR_RGB2BGR))
+  return output_I, output_D
 
-# u_0 = I.shape[0]/2
-# v_0 = I.shape[1]/2
-# f = 35
-# K = np.array([[f, 0, u_0], [0, f, v_0], [0, 0, 1]])
+def generate_I1_dz_D1_dz(depth_map, i_dig_zoom, d_dig_zoom, t):
+  i_1_dz = DZSynthesis(depth_map, i_dig_zoom, d_dig_zoom, t)
+  print("I1 DZ generated")
+  d_1_dz = DZSynthesis(depth_map, d_dig_zoom, d_dig_zoom, t)
+  print("D1 DZ generated")
+  
+  return i_1_dz, d_1_dz
 
-# output_I = applyDigitalZoomReverse(I, f, 40)
-# print("output I found")
-# output_D = applyDigitalZoomReverse(D, f, 40)
-# print("output D found")
-
-# cv2.imwrite(f'results/beatrice_full_35_to_40.png', cv2.cvtColor(img_as_ubyte(output_I), cv2.COLOR_RGB2BGR))
-# cv2.imwrite(f'results/beatrice_full_depth_35_to_40.png', cv2.cvtColor(img_as_ubyte(output_D), cv2.COLOR_RGB2BGR))
-
-i_digital_zoom = "results/beatrice_full_35_to_40.png"
-depth_digital_zoom = "results/beatrice_full_depth_35_to_40.png"
-
-I = cv2.imread(source_file)
-I = cv2.cvtColor(I, cv2.COLOR_BGR2RGB)
-i_a = cv2.imread(i_digital_zoom)
-i_a = cv2.cvtColor(i_a, cv2.COLOR_BGR2RGB)
-D = cv2.imread(depth_file)
-D = cv2.cvtColor(D, cv2.COLOR_BGR2RGB)
-d_a = cv2.imread(depth_digital_zoom)
-d_a = cv2.cvtColor(d_a, cv2.COLOR_BGR2RGB)
+def generate_I2_dz_D2_dz(depth_map, image, t, f_original, f_desired):
+  i_2_dz = DZSynthesis_SecondForm(depth_map, image, t, f_original, f_desired)
+  print("I2 DZ generated")
+  d_2_dz = DZSynthesis_SecondForm(depth_map, depth_map, t, f_original, f_desired)
+  print("D2 DZ generated")
+  return i_2_dz, d_2_dz
+  # cv2.imwrite(f'results/beatrice_i_dz_35_to_40_t1e-1.png', cv2.cvtColor(img_as_ubyte(i_1_dz), cv2.COLOR_RGB2BGR))
 
 
-t = .1
-f_original = 35
-f_desired = 40
+if __name__ == "__main__":
+   parser = argparse.ArgumentParser()
+   parser.add_argument("-s", help="filepath for source image")
+   parser.add_argument("-d", help="filepath for depth image")
+   parser.add_argument("--izoom", help="optional filepath for existing digital zoom image instead of re-generating it")
+   parser.add_argument("--dzoom", help="optional filepath for existing digital zoom depth instead of re-generating it")
+   parser.add_argument("--save", help="flag to save all images. default does not save them", action="store_true")
+   parser.add_argument("--quiet", help="do not show images", action="store_true")
+   args = parser.parse_args()
+   
+   source_path = args.s
+   orig_image = cv2.imread(source_path)
+   orig_image = cv2.cvtColor(orig_image, cv2.COLOR_BGR2RGB)
 
+   depth_path = args.d
+   depth_map = cv2.imread(depth_path)
+   depth_map = cv2.cvtColor(depth_map, cv2.COLOR_BGR2RGB)
 
-# i_1_dz = DZSynthesis(D, i_a, d_a, t)
-# plt.imshow(i_1_dz)
-# plt.show()
-# cv2.imwrite(f'results/beatrice_i_dz_35_to_40_t1e-1.png', cv2.cvtColor(img_as_ubyte(i_1_dz), cv2.COLOR_RGB2BGR))
+   if not args.quiet:
+      show_2_images_side_by_side(orig_image, depth_map, "orig images")
 
-# d_1_dz = DZSynthesis(D, d_a, d_a, t)
-# plt.imshow(d_1_dz)
-# plt.show()
-# cv2.imwrite(f'results/beatrice_d_dz_35_to_40_t1e-1.png', cv2.cvtColor(img_as_ubyte(d_1_dz), cv2.COLOR_RGB2BGR))
+###### HERE ARE THE PARAMETERS WE CAN CHANGE ######
+   f_original = 50
+   f_desired = 85
+   t = .05
+###### HERE ARE THE PARAMETERS WE CAN CHANGE ######
+  
+   if args.izoom and args.dzoom:
+      i1 = cv2.imread(args.izoom)
+      i1 = cv2.cvtColor(i1, cv2.COLOR_BGR2RGB)
+      d1 = cv2.imread(args.dzoom)
+      d1 = cv2.cvtColor(d1, cv2.COLOR_BGR2RGB)
+   else:
+      i1, d1 = generateDigitallyZoomedImageAndDepth(orig_image, depth_map, f_original, f_desired)
+      if not args.quiet:
+        show_2_images_side_by_side(i1, d1, "digitally zoomed")
+      if args.save:
+        cv2.imwrite(f'results/'+source_path.split("/", 2)[-1][:-5]+"-zoomed-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(i1), cv2.COLOR_RGB2BGR))
+        cv2.imwrite(f'results/'+depth_path.split("/", 2)[-1][:-5]+"-zoomed-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(d1), cv2.COLOR_RGB2BGR))
+      
+   i_1_dz, d_1_dz = generate_I1_dz_D1_dz(depth_map, i1, d1, t)
+   if not args.quiet:
+      show_2_images_side_by_side(i_1_dz, d_1_dz, "dolly zoom synthesized images 1")
+   if args.save:
+      cv2.imwrite(f'results/'+source_path.split("/", 2)[-1][:-5]+"-1dz-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(i_1_dz), cv2.COLOR_RGB2BGR))
+      cv2.imwrite(f'results/'+depth_path.split("/", 2)[-1][:-5]+"-1dz-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(d_1_dz), cv2.COLOR_RGB2BGR))
+  
+   i_2_dz, d_2_dz = generate_I2_dz_D2_dz(depth_map, orig_image, t, f_original, f_desired)
+   if not args.quiet:
+      show_2_images_side_by_side(i_2_dz, d_2_dz, "dolly zoom synthesized images 2")
+   if args.save:
+      cv2.imwrite(f'results/'+source_path.split("/", 2)[-1][:-5]+"-2dz-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(i_2_dz), cv2.COLOR_RGB2BGR))
+      cv2.imwrite(f'results/'+depth_path.split("/", 2)[-1][:-5]+"-2dz-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(d_2_dz), cv2.COLOR_RGB2BGR))
+  
+   i_F = image_fusion(i_1_dz, i_2_dz)
+   d_F = image_fusion(d_1_dz, d_2_dz)
+   if not args.quiet:
+      show_2_images_side_by_side(i_F, d_F, "images fused")
+   if args.save:
+      cv2.imwrite(f'results/'+source_path.split("/", 2)[-1][:-5]+"-fused-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(i_F), cv2.COLOR_RGB2BGR))
+      cv2.imwrite(f'results/'+depth_path.split("/", 2)[-1][:-5]+"-fused-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(d_F), cv2.COLOR_RGB2BGR))
 
-
-i_2_dz = DZSynthesis_SecondForm(D, I, t, f_original, f_desired)
-plt.imshow(i_2_dz)
-plt.show()
-cv2.imwrite(f'results/beatrice_i2_dz_35_to_40_t1e-1.png', cv2.cvtColor(img_as_ubyte(i_2_dz), cv2.COLOR_RGB2BGR))
-
-I1_DZ = cv2.imread("results/beatrice_i_dz_35_to_40_t1e-1.png")
-I1_DZ = cv2.cvtColor(I1_DZ, cv2.COLOR_BGR2RGB)
-
-I2_DZ = cv2.imread("results/beatrice_i2_dz_35_to_40_t1e-1.png")
-I2_DZ = cv2.cvtColor(I2_DZ, cv2.COLOR_BGR2RGB)
-
-i_dz_fusion = image_fusion(I1_DZ, i_2_dz)
-plt.imshow(i_dz_fusion)
-plt.show()
