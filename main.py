@@ -133,11 +133,82 @@ def DZSynthesis(d, i_a, d_a, t):
               out_im[out_x, out_y] = I_a[i_x, i_y]
     return out_im
 
+# equation 5
+def DZSynthesis_SecondForm(d, i, t, f_original, f_desired):
+    """
+    Produces a synthesized image of the digitally-zoomed image i_a
+    given the original depth map, the digitally-zoomed depth map,
+    and a given t.
+
+    All image inputs should have the same shape
+
+    Params:
+      d:    original depth map
+      i_a:  digitally-zoomed image
+      d_a:  digitally-zoomed depth map
+      t:    desired distance between depth maps
+
+    Return:
+      The output synthesized image of i_a
+    """
+    I = img_as_float32(i[:,:,:])
+    D = img_as_float32(d[:,:,0])
+
+    out_im = np.zeros(I.shape)
+    im_width = I.shape[0]
+    im_height = I.shape[1]
+
+    u0 = np.array([im_width // 2, im_height // 2])
+    D_center = D[im_width // 2, im_height // 2]
+
+    k = (D_center - t)/D_center
+    k_ = f_original / f_desired
+
+    # for i_x in range(im_width):
+    #     for i_y in range(im_height):
+    #         d_at_x_y = D[i_x, i_y]
+    #         [out_x, out_y] =  ((d_at_x_y * k / ((d_at_x_y - t) * k_))*(np.array([i_x, i_y])-u0)) + u0
+    #         out_x = int(out_x)
+    #         out_y = int(out_y)
+    #         # print(out_x, out_y)
+    #         if out_x  in range(im_width) and out_y in range(im_height):  
+    #           out_im[out_x, out_y] = I[i_x, i_y]
+
+    # for each pixel in the out image
+    for o_x in range (im_width):
+        for o_y in range(im_height):
+            d_at_x_y = D[o_x, o_y]
+
+            # find the corresponding input image location
+            [in_x, in_y] =  (( ((d_at_x_y - t) * k_) / d_at_x_y * k)*(np.array([o_x, o_y]) - u0)) + u0
+    
+            in_x = int(in_x)
+            in_y = int(in_y)
+
+            if in_x  in range(im_width) and in_y in range(im_height):
+              # if it is in range, set the out image pixel to the input image pixel value
+              out_im[o_x, o_y, :] = I[in_x, in_y, :]
+
+    return out_im
+
+
+
 def show_2_images_side_by_side(im1, im2):
     f, axarr = plt.subplots(1,2)
     axarr[0].imshow(im1)
     axarr[1].imshow(im2)
     plt.show()
+
+def image_fusion(I1, I2):
+    B = I
+    B = np.where(B == 0, 1, 0)
+
+    plt.imshow(B)
+    plt.show()  
+
+    output = B*I2 + (1-B)*I1
+    return output
+
 
 source_file = "data/beatrice_full.jpg"
 depth_file = "data/beatrice_full_depth.jpg"
@@ -163,6 +234,8 @@ depth_file = "data/beatrice_full_depth.jpg"
 i_digital_zoom = "results/beatrice_full_35_to_40.png"
 depth_digital_zoom = "results/beatrice_full_depth_35_to_40.png"
 
+I = cv2.imread(source_file)
+I = cv2.cvtColor(I, cv2.COLOR_BGR2RGB)
 i_a = cv2.imread(i_digital_zoom)
 i_a = cv2.cvtColor(i_a, cv2.COLOR_BGR2RGB)
 D = cv2.imread(depth_file)
@@ -170,12 +243,34 @@ D = cv2.cvtColor(D, cv2.COLOR_BGR2RGB)
 d_a = cv2.imread(depth_digital_zoom)
 d_a = cv2.cvtColor(d_a, cv2.COLOR_BGR2RGB)
 
-i_1_dz = DZSynthesis(D, i_a, d_a, .1)
-plt.imshow(i_1_dz)
-plt.show()
-cv2.imwrite(f'results/beatrice_i_dz_35_to_40_t1e-1.png', cv2.cvtColor(img_as_ubyte(i_1_dz), cv2.COLOR_RGB2BGR))
 
-d_1_dz = DZSynthesis(D, d_a, d_a, .1)
-plt.imshow(d_1_dz)
+t = .1
+f_original = 35
+f_desired = 40
+
+
+# i_1_dz = DZSynthesis(D, i_a, d_a, t)
+# plt.imshow(i_1_dz)
+# plt.show()
+# cv2.imwrite(f'results/beatrice_i_dz_35_to_40_t1e-1.png', cv2.cvtColor(img_as_ubyte(i_1_dz), cv2.COLOR_RGB2BGR))
+
+# d_1_dz = DZSynthesis(D, d_a, d_a, t)
+# plt.imshow(d_1_dz)
+# plt.show()
+# cv2.imwrite(f'results/beatrice_d_dz_35_to_40_t1e-1.png', cv2.cvtColor(img_as_ubyte(d_1_dz), cv2.COLOR_RGB2BGR))
+
+
+i_2_dz = DZSynthesis_SecondForm(D, I, t, f_original, f_desired)
+plt.imshow(i_2_dz)
 plt.show()
-cv2.imwrite(f'results/beatrice_d_dz_35_to_40_t1e-1.png', cv2.cvtColor(img_as_ubyte(d_1_dz), cv2.COLOR_RGB2BGR))
+cv2.imwrite(f'results/beatrice_i2_dz_35_to_40_t1e-1.png', cv2.cvtColor(img_as_ubyte(i_2_dz), cv2.COLOR_RGB2BGR))
+
+I1_DZ = cv2.imread("results/beatrice_i_dz_35_to_40_t1e-1.png")
+I1_DZ = cv2.cvtColor(I1_DZ, cv2.COLOR_BGR2RGB)
+
+I2_DZ = cv2.imread("results/beatrice_i2_dz_35_to_40_t1e-1.png")
+I2_DZ = cv2.cvtColor(I2_DZ, cv2.COLOR_BGR2RGB)
+
+i_dz_fusion = image_fusion(I1_DZ, i_2_dz)
+plt.imshow(i_dz_fusion)
+plt.show()
