@@ -1,5 +1,7 @@
 import numpy as np
 from skimage.filters import gaussian
+from scipy import ndimage as nd
+import matplotlib.pyplot as plt
 
 def depth_map_hole_fill(D_f, I_f):
     """
@@ -18,25 +20,33 @@ def depth_map_hole_fill(D_f, I_f):
     h = D_f.shape[1]
     output = D_f
 
-    for x in range(w):
-        for y in range(h):
-            if M[x,y] == 1:
-                # find four nearest neighbors to pixel
-                neighbors = []
-                for x_n in range(x-1, x+2):
-                    if (x_n < 0 or x_n >= w): continue
-                    for y_n in range(y-1, y+2):
-                        if (y_n < 0 or y_n >= w): continue
+    plt.imshow(M, cmap="gray")
+    plt.show()
 
-                        #otherwise it's a valid index
-                        neighbors.append(D_f[x_n, y_n, 0])
+    indices = nd.distance_transform_edt(M, return_distances=False, return_indices=True)
+    output = output[tuple(indices)]
 
-                # find neighbor with highest value
-                if (len(neighbors) == 0): continue
-                max_val = max(neighbors)
+    # for x in range(w):
+    #     for y in range(h):
+    #         if M[x,y] == 1:
+    #             # find four nearest neighbors to pixel
+    #             neighbors = []
+    #             for x_n in range(x-1, x+2):
+    #                 if (x_n < 0 or x_n >= w): continue
+    #                 for y_n in range(y-1, y+2):
+    #                     if (y_n < 0 or y_n >= w): continue
 
-                # set output pixel to that value
-                output[x,y,:] = max_val
+    #                     #otherwise it's a valid index
+    #                     neighbors.append(D_f[x_n, y_n, 0])
+
+    #             # find neighbor with highest value
+    #             if (len(neighbors) == 0): continue
+    #             max_val = max(neighbors)
+
+    #             # set output pixel to that value
+    #             output[x,y,:] = max_val
+    plt.imshow(output)
+    plt.show()
     return output
 
 
