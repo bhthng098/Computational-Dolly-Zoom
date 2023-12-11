@@ -30,9 +30,9 @@ if __name__ == "__main__":
       show_2_images_side_by_side(orig_image, depth_map, "orig images")
 
 ###### HERE ARE THE PARAMETERS WE CAN CHANGE ######
-   f_original = 50
-   f_desired = 85
-   t = .15
+   f_original = 26
+   f_desired = 40
+   t = .07
 ###### HERE ARE THE PARAMETERS WE CAN CHANGE ######
   
     # 1. DIGITAL ZOOM
@@ -82,6 +82,8 @@ if __name__ == "__main__":
    if args.save:
       cv2.imwrite(f'results/'+source_path.split("/", 2)[-1][:-5]+"-fillhole-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(hole_filled_D), cv2.COLOR_RGB2BGR))
 
+   plt.imshow(i_F)
+   plt.show()
    hole_filled_I = image_hole_filling(hole_filled_D, i_F)
    if not args.quiet:
       show_2_images_side_by_side(hole_filled_I, i_F, "hole filled imag3")
