@@ -30,9 +30,9 @@ if __name__ == "__main__":
       show_2_images_side_by_side(orig_image, depth_map, "orig images")
 
 ###### HERE ARE THE PARAMETERS WE CAN CHANGE ######
-   f_original = 26
-   f_desired = 40
-   t = .07
+   f_original = 98 #in pixels, not mm
+   f_desired = 105 #in pixels, not mm
+   t = calculateT(f_original, f_desired, depth_map)
 ###### HERE ARE THE PARAMETERS WE CAN CHANGE ######
   
     # 1. DIGITAL ZOOM
@@ -84,7 +84,10 @@ if __name__ == "__main__":
 
    plt.imshow(i_F)
    plt.show()
-   hole_filled_I = image_hole_filling(hole_filled_D, i_F)
+   hole_filled_I = image_hole_filling(hole_filled_D, i_F, i1)
+   plt.imshow(hole_filled_I)
+   plt.show()
+   hole_filled_I = depth_map_hole_fill(hole_filled_I, hole_filled_I)
    if not args.quiet:
       show_2_images_side_by_side(hole_filled_I, i_F, "hole filled imag3")
    if args.save:

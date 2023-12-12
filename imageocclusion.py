@@ -50,7 +50,7 @@ def depth_map_hole_fill(D_f, I_f):
     return output
 
 
-def image_hole_filling(D_f, I_f):
+def image_hole_filling(D_f, I_f, I_original):
     """
     params:
         - fused_I: synthesized fused image
@@ -66,7 +66,7 @@ def image_hole_filling(D_f, I_f):
 
     # get unique values from D_f
     d_u = np.sort(np.unique(D_f))
-    d_u = d_u[::6]
+    d_u = d_u[::10]
     print("unique values: ", d_u)
     S = len(d_u)
     print(S)
@@ -88,7 +88,7 @@ def image_hole_filling(D_f, I_f):
         # depth mask Ds corresponding to depth step
         D_s = (D_f > d_u[s-1])&(D_f <= d_u[s])
         #print("D_s: ", D_s)
-        I_s = I_f * D_s
+        I_s = I_original * D_s
         M_curr = M * D_s
         M_curr = np.logical_or(M_curr, M_prev)
         # plt.imshow(M_curr[:,:,0])
