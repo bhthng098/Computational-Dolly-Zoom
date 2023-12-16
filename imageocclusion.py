@@ -20,8 +20,8 @@ def depth_map_hole_fill(D_f, I_f):
     h = D_f.shape[1]
     output = D_f
 
-    plt.imshow(M, cmap="gray")
-    plt.show()
+    # plt.imshow(M, cmap="gray")
+    # plt.show()
 
     indices = nd.distance_transform_edt(M, return_distances=False, return_indices=True)
     output = output[tuple(indices)]
@@ -45,8 +45,8 @@ def depth_map_hole_fill(D_f, I_f):
 
     #             # set output pixel to that value
     #             output[x,y,:] = max_val
-    plt.imshow(output)
-    plt.show()
+    # plt.imshow(output)
+    # plt.show()
     return output
 
 
@@ -73,8 +73,8 @@ def image_hole_filling(D_f, I_f, I_original):
 
     M = I_f[:,:,0]
     M = np.where(M == 0, 1, 0)
-    plt.imshow(M)
-    plt.show()
+    # plt.imshow(M)
+    # plt.show()
 
     M = np.stack([M, M, M], axis=-1)
     # plt.imshow(M[:,:,0])

@@ -31,3 +31,5 @@ def calculateF(FOV, img_width):
     f = (img_width/2) / np.tan(FOV/2)
     return f
 
+def mmToPixels(mm):
+    return int(mm * 3.779)

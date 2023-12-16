@@ -36,11 +36,12 @@ def DZSynthesis(d, i_a, d_a, t):
         for i_y in range(im_height):
             d_at_x_y = D_a[i_x, i_y]
             [out_x, out_y] =  d_at_x_y * (D_center - t) / (D_center * (d_at_x_y - t)) * np.array([i_x, i_y]) + (t * (d_at_x_y - D_center) / (D_center * (d_at_x_y - t))) * u0
-            out_x = int(out_x)
-            out_y = int(out_y)
-            # print(out_x, out_y)
-            if out_x in range(im_width) and out_y in range(im_height):  
+            if out_x in range(im_width) and out_y in range(im_height):
+              out_x = int(out_x)
+              out_y = int(out_y)
               out_im[out_x, out_y] = I_a[i_x, i_y]
+            # print(out_x, out_y)
+            
     return out_im
 
     # for o_x in range (im_width):
@@ -97,10 +98,10 @@ def DZSynthesis_SecondForm(d, i, t, f_original, f_desired):
         for i_y in range(im_height):
             d_at_x_y = D[i_x, i_y]
             [out_x, out_y] =  ((d_at_x_y * k / ((d_at_x_y - t) * k_))*(np.array([i_x, i_y])-u0)) + u0
-            out_x = int(out_x)
-            out_y = int(out_y)
-            # print(out_x, out_y)
             if out_x  in range(im_width) and out_y in range(im_height):  
+              out_x = int(out_x)
+              out_y = int(out_y)
+            # print(out_x, out_y)
               out_im[out_x, out_y] = I[i_x, i_y]
 
     # for each pixel in the out image
