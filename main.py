@@ -30,66 +30,68 @@ if __name__ == "__main__":
       show_2_images_side_by_side(orig_image, depth_map, "orig images")
 
 ###### HERE ARE THE PARAMETERS WE CAN CHANGE ######
-   f_original = 98 #in pixels, not mm
-   f_desired = 105 #in pixels, not mm
-   t = calculateT(f_original, f_desired, depth_map)
-###### HERE ARE THE PARAMETERS WE CAN CHANGE ######
-  
-    # 1. DIGITAL ZOOM
+   f_min = 50
+   f_original = 170 #in pixels, not mm
+   f_desired = 400 #in pixels, not mm
+   step = 40
+           # 1. DIGITAL ZOOM
    if args.izoom and args.dzoom:
-      i1 = cv2.imread(args.izoom)
-      i1 = cv2.cvtColor(i1, cv2.COLOR_BGR2RGB)
-      d1 = cv2.imread(args.dzoom)
-      d1 = cv2.cvtColor(d1, cv2.COLOR_BGR2RGB)
+        i1 = cv2.imread(args.izoom)
+        i1 = cv2.cvtColor(i1, cv2.COLOR_BGR2RGB)
+        d1 = cv2.imread(args.dzoom)
+        d1 = cv2.cvtColor(d1, cv2.COLOR_BGR2RGB)
    else:
-      i1, d1 = generateDigitallyZoomedImageAndDepth(orig_image, depth_map, f_original, f_desired)
-      if not args.quiet:
-        show_2_images_side_by_side(i1, d1, "digitally zoomed")
-      if args.save:
-        cv2.imwrite(f'results/'+source_path.split("/", 2)[-1][:-5]+"-zoomed-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(i1), cv2.COLOR_RGB2BGR))
-        cv2.imwrite(f'results/'+depth_path.split("/", 2)[-1][:-5]+"-zoomed-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(d1), cv2.COLOR_RGB2BGR))
-      
-    # 2. DZ SYNTHESIS
-   i_1_dz, d_1_dz = generate_I1_dz_D1_dz(depth_map, i1, d1, t)
-   if not args.quiet:
-      show_2_images_side_by_side(i_1_dz, d_1_dz, "dolly zoom synthesized images 1")
-   if args.save:
-      cv2.imwrite(f'results/'+source_path.split("/", 2)[-1][:-5]+"-1dz-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(i_1_dz), cv2.COLOR_RGB2BGR))
-      cv2.imwrite(f'results/'+depth_path.split("/", 2)[-1][:-5]+"-1dz-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(d_1_dz), cv2.COLOR_RGB2BGR))
-  
-   i_2_dz, d_2_dz = generate_I2_dz_D2_dz(depth_map, orig_image, t, f_original, f_desired)
-   if not args.quiet:
-      show_2_images_side_by_side(i_2_dz, d_2_dz, "dolly zoom synthesized images 2")
-   if args.save:
-      cv2.imwrite(f'results/'+source_path.split("/", 2)[-1][:-5]+"-2dz-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(i_2_dz), cv2.COLOR_RGB2BGR))
-      cv2.imwrite(f'results/'+depth_path.split("/", 2)[-1][:-5]+"-2dz-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(d_2_dz), cv2.COLOR_RGB2BGR))
-  
-    # IMAGE FUSION OF 1 & 2
-   i_F = image_fusion(i_1_dz, i_2_dz)
-   d_F = image_fusion(d_1_dz, d_2_dz)
+        i1, d1 = generateDigitallyZoomedImageAndDepth(orig_image, depth_map, f_original, f_desired)
+        if not args.quiet:
+            show_2_images_side_by_side(i1, d1, "digitally zoomed")
+        if args.save:
+            cv2.imwrite(f'results/'+source_path.split("/", 2)[-1][:-5]+"-zoomed-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(i1), cv2.COLOR_RGB2BGR))
+            cv2.imwrite(f'results/'+depth_path.split("/", 2)[-1][:-5]+"-zoomed-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(d1), cv2.COLOR_RGB2BGR))
+        
+   t_target = f_min
+   while (f_min <= t_target <= f_desired):
+    t = calculateT(f_original, t_target, depth_map)
+    ###### HERE ARE THE PARAMETERS WE CAN CHANGE ######
+    
+        # 2. DZ SYNTHESIS
+    i_1_dz, d_1_dz = generate_I1_dz_D1_dz(depth_map, i1, d1, t)
+    if not args.quiet:
+        show_2_images_side_by_side(i_1_dz, d_1_dz, "dolly zoom synthesized images 1")
+    if args.save:
+        cv2.imwrite(f'results/'+source_path.split("/", 2)[-1][:-5]+"-1dz-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(i_1_dz), cv2.COLOR_RGB2BGR))
+        cv2.imwrite(f'results/'+depth_path.split("/", 2)[-1][:-5]+"-1dz-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(d_1_dz), cv2.COLOR_RGB2BGR))
+    
+    i_2_dz, d_2_dz = generate_I2_dz_D2_dz(depth_map, orig_image, t, f_original, f_desired)
+    if not args.quiet:
+        show_2_images_side_by_side(i_2_dz, d_2_dz, "dolly zoom synthesized images 2")
+    if args.save:
+        cv2.imwrite(f'results/'+source_path.split("/", 2)[-1][:-5]+"-2dz-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(i_2_dz), cv2.COLOR_RGB2BGR))
+        cv2.imwrite(f'results/'+depth_path.split("/", 2)[-1][:-5]+"-2dz-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(d_2_dz), cv2.COLOR_RGB2BGR))
+    
+        # IMAGE FUSION OF 1 & 2
+    i_F = image_fusion(i_1_dz, i_2_dz)
+    d_F = image_fusion(d_1_dz, d_2_dz)
 
-   if not args.quiet:
-      show_2_images_side_by_side(i_F, d_F, "images fused")
-   if args.save:
-      cv2.imwrite(f'results/'+source_path.split("/", 2)[-1][:-5]+"-fused-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(i_F), cv2.COLOR_RGB2BGR))
-      cv2.imwrite(f'results/'+depth_path.split("/", 2)[-1][:-5]+"-fused-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(d_F), cv2.COLOR_RGB2BGR))
+    if not args.quiet:
+        show_2_images_side_by_side(i_F, d_F, "images fused")
+    if args.save:
+        cv2.imwrite(f'results/'+source_path.split("/", 2)[-1][:-5]+"-fused-"+str(f_original)+"-"+str(f_desired)+str(t_target)+'.jpeg', cv2.cvtColor(img_as_ubyte(i_F), cv2.COLOR_RGB2BGR))
+        cv2.imwrite(f'results/'+depth_path.split("/", 2)[-1][:-5]+"-fused-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(d_F), cv2.COLOR_RGB2BGR))
 
-    # HOLE FILLING DEPTH_F
-   hole_filled_D = depth_map_hole_fill(d_F, i_F)
+        # HOLE FILLING DEPTH_F
+    hole_filled_D = depth_map_hole_fill(d_F, i_F)
 
-   if not args.quiet:
-      show_2_images_side_by_side(hole_filled_D, d_F, "hole filled depth map")
-   if args.save:
-      cv2.imwrite(f'results/'+source_path.split("/", 2)[-1][:-5]+"-fillhole-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(hole_filled_D), cv2.COLOR_RGB2BGR))
+    if not args.quiet:
+        show_2_images_side_by_side(hole_filled_D, d_F, "hole filled depth map")
+    if args.save:
+        cv2.imwrite(f'results/'+source_path.split("/", 2)[-1][:-5]+"-fillhole-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(hole_filled_D), cv2.COLOR_RGB2BGR))
 
-   plt.imshow(i_F)
-   plt.show()
-   hole_filled_I = image_hole_filling(hole_filled_D, i_F, i1)
-   plt.imshow(hole_filled_I)
-   plt.show()
-   hole_filled_I = depth_map_hole_fill(hole_filled_I, hole_filled_I)
-   if not args.quiet:
-      show_2_images_side_by_side(hole_filled_I, i_F, "hole filled imag3")
-   if args.save:
-      cv2.imwrite(f'results/'+source_path.split("/", 2)[-1][:-5]+"-fillholeimage-"+str(f_original)+"-"+str(f_desired)+'.jpeg', cv2.cvtColor(img_as_ubyte(hole_filled_I), cv2.COLOR_RGB2BGR))
 
+    hole_filled_I = image_hole_filling(hole_filled_D, i_F, i1)
+    hole_filled_I = depth_map_hole_fill(hole_filled_I, hole_filled_I)
+    if not args.quiet:
+        show_2_images_side_by_side(hole_filled_I, i_F, "hole filled imag3")
+    if args.save:
+        cv2.imwrite(f'results/'+source_path.split("/", 2)[-1][:-5]+"-fillholeimage-"+str(f_original)+"-"+str(f_desired)+str(t_target)+'.jpeg', cv2.cvtColor(img_as_ubyte(hole_filled_I), cv2.COLOR_RGB2BGR))
+
+    t_target += step
