@@ -18,6 +18,9 @@ if __name__ == "__main__":
    parser.add_argument("--show", help="show intermediate images", action="store_true")
    parser.add_argument("--use_fusion_fill", help="use the fusion images to fill the holes/gaps", action="store_true")
    args = parser.parse_args()
+
+   if int(args.fmin) == int(args.fo):
+     raise ValueError("f_min must be > f_o")
    
    source_path = args.s
    orig_image = cv2.imread(source_path)
@@ -45,6 +48,7 @@ if __name__ == "__main__":
     f_min = mmToPixels(int(args.fmin))
     t_target = f_min
     while (f_min <= t_target <= f_desired):
+      print(t_target)
       t = calculateT(f_original, t_target, depth_map)
 
       # 2. DZ SYNTHESIS

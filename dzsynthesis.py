@@ -36,6 +36,8 @@ def DZSynthesis(d, i_a, d_a, t):
         for i_y in range(im_height):
             d_at_x_y = D_a[i_x, i_y]
             [out_x, out_y] =  d_at_x_y * (D_center - t) / (D_center * (d_at_x_y - t)) * np.array([i_x, i_y]) + (t * (d_at_x_y - D_center) / (D_center * (d_at_x_y - t))) * u0
+            if not out_x or (out_x == np.inf): continue
+            if not out_y or (out_y == np.inf): continue
             out_x = int(out_x)
             out_y = int(out_y)
             # print(out_x, out_y)

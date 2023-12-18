@@ -32,4 +32,4 @@ def calculateF(FOV, img_width):
     return f
 
 def mmToPixels(mm):
-    return int(mm * 3.779 )
+    return int(mm * 3.779)
