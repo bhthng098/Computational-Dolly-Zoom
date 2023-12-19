@@ -17,9 +17,10 @@ def applyDigitalZoom(input, f, f_desired):
       A digitally-zoomed image with focal length f_desired
       Note: this LEAVES GRIDLINE GAPS in the output image b/c sampling mode
     """
-    I = input[:,:,1]
+    I = img_as_float32(input[:,:,:])
     out_im = np.zeros(I.shape)
-    im_width, im_height = I.shape
+    im_width = I.shape[0]
+    im_height = I.shape[1]
 
     k = f_desired / f
     u0 = np.array([im_width // 2, im_height // 2])
@@ -49,6 +50,8 @@ def applyDigitalZoomReverse(input, f, f_desired):
       Note: this DOES NOT leaves gridline gaps in the output image b/c
             we are applying applyDigitalZoom() to the out im in reverse
     """
+
+    return applyDigitalZoom(input, f, f_desired)
     I = img_as_float32(input[:,:,:])
     out_im = np.zeros(I.shape)
     im_width = I.shape[0]

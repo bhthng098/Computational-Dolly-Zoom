@@ -36,12 +36,32 @@ def DZSynthesis(d, i_a, d_a, t):
         for i_y in range(im_height):
             d_at_x_y = D_a[i_x, i_y]
             [out_x, out_y] =  d_at_x_y * (D_center - t) / (D_center * (d_at_x_y - t)) * np.array([i_x, i_y]) + (t * (d_at_x_y - D_center) / (D_center * (d_at_x_y - t))) * u0
+            if not out_x or (out_x == np.inf): continue
+            if not out_y or (out_y == np.inf): continue
             out_x = int(out_x)
             out_y = int(out_y)
             # print(out_x, out_y)
             if out_x in range(im_width) and out_y in range(im_height):  
               out_im[out_x, out_y] = I_a[i_x, i_y]
     return out_im
+
+    # for o_x in range (im_width):
+    #     for o_y in range(im_height):
+    #         d_at_x_y = D_a[o_x, o_y]
+    #         u_b = np.array([o_x, o_y])
+
+    #         # find the corresponding input image location
+    #         [in_x, in_y] =  ((D_center*(d_at_x_y-t))/(d_at_x_y*(D_center-t))) * (u_b - u0*((t*(d_at_x_y-D_center))/(D_center*(d_at_x_y-t))))
+    
+    #         if in_x  in range(im_width) and in_y in range(im_height):
+
+    #           in_x = int(in_x)
+    #           in_y = int(in_y)
+
+    #           # if it is in range, set the out image pixel to the input image pixel value
+    #           out_im[o_x, o_y, :] = I_a[in_x, in_y, :]
+
+    # return out_im
 
 # equation 5
 def DZSynthesis_SecondForm(d, i, t, f_original, f_desired):
@@ -75,29 +95,28 @@ def DZSynthesis_SecondForm(d, i, t, f_original, f_desired):
     k = (D_center - t)/D_center
     k_ = f_original / f_desired
 
-    # for i_x in range(im_width):
-    #     for i_y in range(im_height):
-    #         d_at_x_y = D[i_x, i_y]
-    #         [out_x, out_y] =  ((d_at_x_y * k / ((d_at_x_y - t) * k_))*(np.array([i_x, i_y])-u0)) + u0
-    #         out_x = int(out_x)
-    #         out_y = int(out_y)
-    #         # print(out_x, out_y)
-    #         if out_x  in range(im_width) and out_y in range(im_height):  
-    #           out_im[out_x, out_y] = I[i_x, i_y]
+    for i_x in range(im_width):
+        for i_y in range(im_height):
+            d_at_x_y = D[i_x, i_y]
+            [out_x, out_y] =  ((d_at_x_y * k / ((d_at_x_y - t) * k_))*(np.array([i_x, i_y])-u0)) + u0
+            out_x = int(out_x)
+            out_y = int(out_y)
+            # print(out_x, out_y)
+            if out_x  in range(im_width) and out_y in range(im_height):  
+              out_im[out_x, out_y] = I[i_x, i_y]
 
     # for each pixel in the out image
-    for o_x in range (im_width):
-        for o_y in range(im_height):
-            d_at_x_y = D[o_x, o_y]
+    # for o_x in range (im_width):
+    #     for o_y in range(im_height):
+    #         d_at_x_y = D[o_x, o_y]
 
-            # find the corresponding input image location
-            [in_x, in_y] =  (( ((d_at_x_y - t) * k_) / (d_at_x_y * k))*(np.array([o_x, o_y]) - u0)) + u0
-    
-            in_x = int(in_x)
-            in_y = int(in_y)
+    #         # find the corresponding input image location
+    #         [in_x, in_y] =  (( ((d_at_x_y - t) * k_) / (d_at_x_y * k))*(np.array([o_x, o_y]) - u0)) + u0
 
-            if in_x  in range(im_width) and in_y in range(im_height):
-              # if it is in range, set the out image pixel to the input image pixel value
-              out_im[o_x, o_y, :] = I[in_x, in_y, :]
+    #         if in_x in range(im_width) and in_y in range(im_height):
+    #           in_x = int(in_x)
+    #           in_y = int(in_y)
+    #           # if it is in range, set the out image pixel to the input image pixel value
+    #           out_im[o_x, o_y, :] = I[in_x, in_y, :]
 
     return out_im
